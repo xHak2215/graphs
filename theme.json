@@ -1,0 +1,9 @@
+{
+    "begraund_color":    "auto"   ,
+    "text_color":        "#CCCBCB",
+    "point_color":       "#4c82f7",
+    "colonium_color":    "#4c82f7",
+    "graph_edging_color":"#000001",
+    "line_color":        "#1a1a1a"
+
+}
