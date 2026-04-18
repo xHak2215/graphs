@@ -42,14 +42,16 @@ class Main(QWidget):
         self.area_y = (self.height() - self.area_size) // 2
         self.font_px = 15
 
-        self.file = "exempe_graph.json"
+        self.file = None
+        self.data = None
 
-        with open(self.file, "r") as f:
-            datas = json.load(f)
-        
-        self.title = datas["title"]
-        self.visuale_type = datas["visuale_type"]
-        self.data = datas["elements"]
+        if self.file:
+            with open(self.file, "r") as f:
+                datas = json.load(f)
+            
+            self.title = datas["title"]
+            self.visuale_type = datas["visuale_type"]
+            self.data = datas["elements"]
 
 
         self.button.clicked.connect(self.on_click)
@@ -64,13 +66,14 @@ class Main(QWidget):
         #self.points.append((new_x, new_y))
         #self.update()
 
-        with open(self.file, "r") as f:
-            datas = json.load(f)
+        if self.file:
+            with open(self.file, "r") as f:
+                datas = json.load(f)
         
-        self.title = datas["title"]
-        self.visuale_type = datas["visuale_type"]
-        self.data = datas["elements"]
-        self.update()
+            self.title = datas["title"]
+            self.visuale_type = datas["visuale_type"]
+            self.data = datas["elements"]
+            self.update()
 
     def get_file_dialog(self):
         file_name, _ = QFileDialog.getOpenFileName(
@@ -81,62 +84,63 @@ class Main(QWidget):
         return file_name
 
     def paintEvent(self, event)->None:
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        if self.file and self.data:
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # рамка области графика
-        pen = QPen(QColor(theme.graph_edging_color))
-        pen.setWidth(2)
-        painter.setPen(pen)
-        rect = QRect(self.area_x, self.area_y, self.area_size, self.area_size)
-        painter.drawRect(rect)
+            # рамка области графика
+            pen = QPen(QColor(theme.graph_edging_color))
+            pen.setWidth(2)
+            painter.setPen(pen)
+            rect = QRect(self.area_x, self.area_y, self.area_size, self.area_size)
+            painter.drawRect(rect)
 
-        painter.setPen(QColor(theme.text_color))
-        painter.setFont(QFont("Arial", self.font_px))
-        fm = painter.fontMetrics()
+            painter.setPen(QColor(theme.text_color))
+            painter.setFont(QFont("Arial", self.font_px))
+            fm = painter.fontMetrics()
 
-        # полоска у низа области
-        podpis_y = self.area_y + self.area_size - fm.height()+1
-        painter.fillRect(QRect(self.area_x, podpis_y, self.area_size, 5), QColor(theme.line_color))
+            # полоска у низа области
+            podpis_y = self.area_y + self.area_size - fm.height()+1
+            painter.fillRect(QRect(self.area_x, podpis_y, self.area_size, 5), QColor(theme.line_color))
 
-        max_num = []
-        for point in self.data:
-            max_num.append(point[1])
-        max_num = max(max_num)
-        
-        if max_num > 38:
-            self.font_px = 10
+            max_num = []
+            for point in self.data:
+                max_num.append(point[1])
+            max_num = max(max_num)
+            
+            if max_num > 38:
+                self.font_px = 10
 
-        position=[]
-        otstup = fm.height()
-        for i in range(1, max_num+1):
-            symbol_y = self.area_y + otstup
-            otstup += round(self.area_size // max_num)
+            position=[]
+            otstup = fm.height()
+            for i in range(1, max_num+1):
+                symbol_y = self.area_y + otstup
+                otstup += round(self.area_size // max_num)
 
-            painter.drawText(self.area_x - fm.horizontalAdvance(str(i)) - 2, symbol_y, str(i))
-            position.append((self.area_x - fm.horizontalAdvance(str(i)) - 2, symbol_y))
+                painter.drawText(self.area_x - fm.horizontalAdvance(str(i)) - 2, symbol_y, str(i))
+                position.append((self.area_x - fm.horizontalAdvance(str(i)) - 2, symbol_y))
 
-        painter.drawText(self.area_x + round(self.area_size / 2 - (fm.horizontalAdvance(self.title)/2)), self.area_y - round(fm.height()/2), self.title)
+            painter.drawText(self.area_x + round(self.area_size / 2 - (fm.horizontalAdvance(self.title)/2)), self.area_y - round(fm.height()/2), self.title)
 
-        # рисуем точки
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(theme.point_color))
+            # рисуем точки
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(theme.point_color))
 
-        painter.setPen(QColor(theme.text_color))
-        painter.setFont(QFont("Arial", round((self.font_px/100)*85)))
-        fm2 = painter.fontMetrics()
+            painter.setPen(QColor(theme.text_color))
+            painter.setFont(QFont("Arial", round((self.font_px/100)*85)))
+            fm2 = painter.fontMetrics()
 
-        px = self.area_x + fm.horizontalAdvance("  ")
-        point_size = 6
-        for inx in range(len(self.data)):
-            if self.data[inx][1] > 0:
-                promeshutok = round(self.area_size / self.data[inx][1])
-            else:
-                promeshutok = fm2.horizontalAdvance(self.data[inx][0])+5
-            px += promeshutok
+            px = self.area_x + fm.horizontalAdvance("  ")
+            point_size = 6
+            for inx in range(len(self.data)):
+                if self.data[inx][1] > 0:
+                    promeshutok = round(self.area_size / self.data[inx][1])
+                else:
+                    promeshutok = fm2.horizontalAdvance(self.data[inx][0])+5
+                px += promeshutok
 
-            painter.drawEllipse(QPoint(px, position[self.data[inx][1] - 1][1] - round(fm.height() / 2) + round(point_size/2)), point_size, point_size)
-            painter.drawText(px - round(fm2.horizontalAdvance(self.data[inx][0])/2), podpis_y + fm2.height(), self.data[inx][0])
+                painter.drawEllipse(QPoint(px, position[self.data[inx][1] - 1][1] - round(fm.height() / 2) + round(point_size/2)), point_size, point_size)
+                painter.drawText(px - round(fm2.horizontalAdvance(self.data[inx][0])/2), podpis_y + fm2.height(), self.data[inx][0])
             
 
 
