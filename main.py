@@ -60,10 +60,6 @@ class Main(QWidget):
     def on_click(self):
         #text = self.textbox.text()
         #print("Input:", text)
-        # пример: добавляем точку вправо при каждом клике
-        #new_x = self.area_x + 20 + len(self.points) * 20
-        #new_y = self.area_y + self.area_size // 2
-        #self.points.append((new_x, new_y))
         #self.update()
 
         if self.file:
@@ -80,7 +76,6 @@ class Main(QWidget):
             self, 'Open File', '', 'All Files (*)'
         )
         self.file = file_name
-        print(file_name, _)
         return file_name
 
     def paintEvent(self, event)->None:
