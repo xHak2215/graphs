@@ -10,12 +10,12 @@ with open(os.path.join(os.getcwd(), "theme.json"),'r') as f:
     jsontheme = json.load(f)
 
 class theme:
-    begraund_color = jsontheme["begraund_color"]
-    text_color = jsontheme["text_color"]
-    point_color = jsontheme["point_color"]
-    colonium_color = jsontheme["colonium_color"]
-    graph_edging_color = jsontheme["graph_edging_color"]
-    line_color = jsontheme["line_color"]
+    begraund_color = jsontheme.get("begraund_color", "auto")
+    text_color = jsontheme.get("text_color", "#CCCBCB")
+    point_color = jsontheme.get("point_color", "#4c82f7")
+    colonium_color = jsontheme.get("colonium_color", "#4c82f7")
+    graph_edging_color = jsontheme.get("graph_edging_color", "#000001")
+    line_color = jsontheme.get("line_color", "#1a1a1a")
 
 class Main(QWidget):
     def __init__(self) -> None:
@@ -97,23 +97,37 @@ class Main(QWidget):
             # полоска у низа области
             podpis_y = self.area_y + self.area_size - fm.height()+1
             painter.fillRect(QRect(self.area_x, podpis_y, self.area_size, 5), QColor(theme.line_color))
-
-            max_num = []
-            for point in self.data:
-                max_num.append(point[1])
-            max_num = max(max_num)
             
-            if max_num > 38:
+            self.data = sorted(self.data, key=lambda itm: itm[1], reverse=True)
+
+            num = []
+            for point in self.data:
+                num.append(point[1])
+            
+            l_str_len = []
+            for strs in self.data:
+                l_str_len.append(len(strs[0]))
+            
+            max_str_len = max(l_str_len)
+            
+            if len(num)>10:
                 self.font_px = 10
 
-            position=[]
-            otstup = fm.height()
-            for i in range(1, max_num+1):
-                symbol_y = self.area_y + otstup
-                otstup += round(self.area_size // max_num)
+            position={}
+            indent_y = fm.height()
+            indent_x = self.area_x + fm.horizontalAdvance(" "*(max_str_len+1))
+            index = 0
+            
+            for i in num:
+                symbol_y = self.area_y + indent_y
+                indent_y += round(self.area_size // len(num))
 
-                painter.drawText(self.area_x - fm.horizontalAdvance(str(i)) - 2, symbol_y, str(i))
-                position.append((self.area_x - fm.horizontalAdvance(str(i)) - 2, symbol_y))
+                indent_x -= fm.horizontalAdvance(self.data[index][0]) + fm.horizontalAdvance(" ") * round((max_str_len - len(self.data[index][0]))/2)
+
+                painter.drawText(self.area_x - fm.horizontalAdvance(str(self.data[index][1])), symbol_y, str(i))
+                position[index] = (indent_x , symbol_y)
+                index += 1
+
 
             painter.drawText(self.area_x + round(self.area_size / 2 - (fm.horizontalAdvance(self.title)/2)), self.area_y - round(fm.height()/2), self.title)
 
@@ -134,10 +148,9 @@ class Main(QWidget):
                     promeshutok = fm2.horizontalAdvance(self.data[inx][0])+5
                 px += promeshutok
 
-                painter.drawEllipse(QPoint(px, position[self.data[inx][1] - 1][1] - round(fm.height() / 2) + round(point_size/2)), point_size, point_size)
-                painter.drawText(px - round(fm2.horizontalAdvance(self.data[inx][0])/2), podpis_y + fm2.height(), self.data[inx][0])
+                painter.drawEllipse(QPoint(self.area_x + position[inx][0], position[inx][1] - round(fm.height() / 2 + point_size/2)), point_size, point_size)
+                painter.drawText(self.area_x + position[inx][0] - round((fm2.horizontalAdvance(self.data[inx][0])+5) / 2), podpis_y + fm2.height() , self.data[inx][0])
             
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
